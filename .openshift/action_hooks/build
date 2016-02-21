@@ -1,5 +1,6 @@
 #!/bin/bash
 
+<<<<<<< HEAD
 # set -e MAYBE
 
 PID_FILE=/tmp/build_pid
@@ -18,3 +19,46 @@ else
 fi
 exit
 
+=======
+# just get the latest Drupal with wget. No drush dependency.
+
+set -e          # Exit immediately if a command exits with a non-zero status.
+
+VER=8                                           # Drupal major version
+PAGE="https://www.drupal.org/project/drupal"    # Drupal web page with latest versions
+
+# get the link to the latest file for the specified major version, will get rc?
+LNAME=`wget -q -O - ${PAGE} | sed '/drupal-'${VER}'.[0-9\.]*.*.tar.gz/!d; s/^[^\"]*\"//; s/\".*$//;'`
+
+DRUPAL_DIR=${OPENSHIFT_DATA_DIR}drupal
+DRUPAL_SITE_DIR=${OPENSHIFT_DATA_DIR}sites
+
+mkdir -p ${OPENSHIFT_TMP_DIR}drupal
+mkdir -p ${OPENSHIFT_DATA_DIR}downloads
+
+# download and expand .tar.gz
+(cd ${OPENSHIFT_DATA_DIR}downloads ; wget -q ${LNAME})
+LATEST=$(ls -1t ${OPENSHIFT_DATA_DIR}downloads | head -1)
+(cd ${OPENSHIFT_DATA_DIR}downloads ; tar -xf ${LATEST})
+
+# Link the /current symlink to the latest Drupal instance
+LATEST=`echo ${LATEST} | sed 's/.tar.gz//;'`
+export DRUPAL_INSTALL_DIR="${OPENSHIFT_DATA_DIR}downloads/${LATEST}"
+ln -s ${LATEST} ${OPENSHIFT_DATA_DIR}downloads/current
+
+# ####
+# modify Drupal
+mv $DRUPAL_INSTALL_DIR/sites $DRUPAL_INSTALL_DIR/sites.original
+# install Health Check
+cp ${OPENSHIFT_REPO_DIR}.openshift/health_check.php ${DRUPAL_INSTALL_DIR}
+# patch .htaccess
+# FAILED: patch ${DRUPAL_INSTALL_DIR}/.htaccess < ${OPENSHIFT_REPO_DIR}.openshift/htaccess.patch
+# copy sites.original to sites
+cp -r $DRUPAL_INSTALL_DIR/sites.original $DRUPAL_SITE_DIR
+# symbolic link: sites into install directory for easy access ???
+ln -sfn ../../sites $DRUPAL_INSTALL_DIR/sites
+# symbolic link: current into php
+ln -sfn ../../data/downloads/current ${OPENSHIFT_REPO_DIR}php
+# ###
+# ###########################################################################################
+>>>>>>> 520a754298042ca7b26ffd1c5785fa9ceea61eae
