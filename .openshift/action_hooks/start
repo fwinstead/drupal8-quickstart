@@ -1,0 +1,4 @@
+#!/bin/bash
+
+httpd -f ${OPENSHIFT_REPO_DIR}conf/httpd.conf -k start
+exit 0

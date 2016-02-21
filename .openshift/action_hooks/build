@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# set -e MAYBE
+
+PID_FILE=/tmp/build_pid
+PID=$(cat "${PID_FILE}" 2> /dev/null)
+
+# check to see if build is already running
+if [ \! "${PID}" ] || [ \! -f "/proc/${PID}/stat" ]
+then
+	# Need a placehlder file at:  ${OPENSHIFT_REPO_DIR}/www/index.cgi
+	# start build in background
+	nohup bash ${OPENSHIFT_REPO_DIR}/misc/make.sh > ${LOG_FILE} 2>&1 &
+	PID=$!;  echo $PID > ${PID_FILE} ; echo "Build started. pid : ${PID}"
+else
+	echo "Build is already in progress, pid: ${PID}"
+	ps -ef | grep "${PID}"
+fi
+exit
+
